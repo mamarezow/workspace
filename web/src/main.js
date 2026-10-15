@@ -1,9 +1,14 @@
 // The app's entry: find out who is signed in (signing in through Telegram when opened as a mini app),
-// then show the right page.
+// then show the page for the current address.
 import { api } from "./api.js";
-import { setLang } from "./i18n.js";
+import { h } from "./dom.js";
+import { setLang, t } from "./i18n.js";
+import { currentRoute, listen } from "./router.js";
+import { errorLine } from "./ui.js";
 import { authPage } from "./pages/auth.js";
 import { homePage } from "./pages/home.js";
+import { joinPage } from "./pages/join.js";
+import { workspacePage } from "./pages/workspace.js";
 
 const app = /** @type {HTMLElement} */ (document.getElementById("app"));
 
@@ -41,15 +46,36 @@ async function telegramSignIn() {
   }
 }
 
+let user = null, triedTelegram = false;
+let cleanups = [];
+
 async function show() {
-  let user = await currentUser();
-  if (!user && (await telegramSignIn())) user = await currentUser();
-  setLang(user?.lang || "fa");
+  for (const fn of cleanups) fn();
+  cleanups = [];
+  try {
+    user = await currentUser();
+    if (!user && !triedTelegram) {
+      triedTelegram = true;
+      if (await telegramSignIn()) user = await currentUser();
+    }
+    setLang(user?.lang || "fa");
+    app.replaceChildren(await page());
+  } catch (e) {
+    const err = errorLine();
+    err.show(e);
+    app.replaceChildren(h("div", { class: "center" }, h("div", { class: "card auth stack" }, err, h("button", { class: "btn", onclick: show }, t("open")))));
+  }
   app.removeAttribute("aria-busy");
   app.classList.remove("boot");
-  app.replaceChildren(user
-    ? homePage({ user, onSignedOut: show, onChanged: show })
-    : authPage({ onSignedIn: show }));
 }
 
+async function page() {
+  const route = currentRoute();
+  if (!user) return authPage({ onSignedIn: show, note: route.name === "join" ? t("signInToJoin") : "" });
+  if (route.name === "workspace") return workspacePage({ id: route.id, tab: route.tab, user, onCleanup: (fn) => cleanups.push(fn) });
+  if (route.name === "join") return joinPage({ code: route.code });
+  return homePage({ user, onSignedOut: show, onChanged: show });
+}
+
+listen(show);
 show();
