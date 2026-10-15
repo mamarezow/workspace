@@ -1,0 +1,9 @@
+{
+  // The pages' type check (the browser).
+  "compilerOptions": {
+    "target": "es2022", "module": "es2022", "moduleResolution": "bundler",
+    "lib": ["es2022", "dom", "dom.iterable"], "types": [],
+    "checkJs": true, "allowJs": true, "noEmit": true, "strict": false, "skipLibCheck": true
+  },
+  "include": ["src/**/*.js"]
+}
