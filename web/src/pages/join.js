@@ -13,7 +13,7 @@ export async function joinPage({ code }) {
     info = await api("GET", `/api/join/${encodeURIComponent(code)}`);
   } catch (e) {
     err.show(e);
-    return h("div", { class: "center" }, h("div", { class: "card auth stack" }, h("h1", {}, t("joinTitle")), err,
+    return h("div", { class: "center night" }, h("div", { class: "card auth stack" }, h("h1", {}, t("joinTitle")), err,
       h("a", { class: "btn", href: "/", "data-link": true }, t("back"))));
   }
   const w = info.workspace;
@@ -22,7 +22,7 @@ export async function joinPage({ code }) {
     if (!info.member) await api("POST", `/api/join/${encodeURIComponent(code)}`);
     go(`/w/${w.id}`, { replace: true });
   });
-  return h("div", { class: "center" },
+  return h("div", { class: "center night" },
     h("div", { class: "card auth stack" },
       h("p", { class: "muted" }, t("joinTitle")),
       h("h1", {}, (w.icon ? w.icon + " " : "") + w.name),

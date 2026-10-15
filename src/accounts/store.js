@@ -1,4 +1,5 @@
-// Accounts: the only code that reads or writes the users, sessions, login_attempts and telegram_links tables.
+// Accounts: the only code that reads or writes the users, sessions, login_attempts and telegram_links tables
+// (telegram_chats and login_codes belong to telegram-bot.js).
 // The rest of the server asks through these functions and keeps only a person's id.
 import { HttpError, cleanText } from "../lib/http.js";
 import { hashPassword, randomHex, sameText, sha256 } from "../lib/crypto.js";

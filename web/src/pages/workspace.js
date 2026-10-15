@@ -42,6 +42,7 @@ export async function workspacePage({ id, tab, user, onCleanup }) {
 }
 
 function header({ workspace }) {
+  document.title = workspace.name;
   return h("header", { class: "topbar" },
     h("div", { class: "row" },
       h("a", { class: "btn quiet", href: "/", "data-link": true }, "‹ " + t("back")),

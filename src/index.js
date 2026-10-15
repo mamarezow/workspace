@@ -14,7 +14,9 @@ export default {
   async fetch(req, env) {
     const url = new URL(req.url);
     if (!url.pathname.startsWith("/api/")) return env.ASSETS.fetch(req);
-    if (req.method !== "GET" && req.headers.get(OWN_PAGE_HEADER) !== "1") return json({ error: "forbidden" }, 403);
+    // Telegram's webhook proves itself with its own secret header instead (see accounts/telegram-bot.js).
+    const fromTelegram = url.pathname === "/api/telegram/webhook";
+    if (req.method !== "GET" && !fromTelegram && req.headers.get(OWN_PAGE_HEADER) !== "1") return json({ error: "forbidden" }, 403);
     const ctx = { req, env, url, secure: url.protocol === "https:" };
     try {
       for (const r of routers) {

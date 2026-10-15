@@ -1,7 +1,8 @@
 import { test, expect, request } from "@playwright/test";
 import { BASE, person, signedUp, uniq } from "./helpers.mjs";
 import { signedInitData } from "../telegram-data.mjs";
-import { BOT_TOKEN } from "../../playwright.config.mjs";
+import crypto from "node:crypto";
+import { BOT_TOKEN, TELEGRAM_API } from "../../playwright.config.mjs";
 
 test("sign up, see yourself, sign out", async () => {
   const p = await signedUp();
@@ -107,5 +108,67 @@ test.describe("Telegram", () => {
     const a = await person();
     await a.post("/api/auth/telegram", { initData: signedInitData(BOT_TOKEN, tgUser()) });
     expect((await a.del("/api/me/telegram")).body.error).toBe("set_password_first");
+  });
+});
+
+test.describe("Telegram code", () => {
+  const sent = async () => (await (await fetch(TELEGRAM_API + "/sent")).json());
+  const secret = crypto.createHmac("sha256", BOT_TOKEN).update("webhook").digest("hex").slice(0, 48);
+  /** Telegram telling the bot that someone wrote to it. */
+  const write = (from, text = "/start", s = secret) => fetch(BASE + "/api/telegram/webhook", {
+    method: "POST", headers: { "content-type": "application/json", "x-telegram-bot-api-secret-token": s },
+    body: JSON.stringify({ message: { text, from, chat: { id: from.id, type: "private" } } }),
+  });
+  const codeFor = async (id) => (await sent()).filter((m) => m.body?.chat_id === id).pop()?.body.text.match(/\d{6}/)?.[0];
+  const tgUser = () => ({ id: Math.floor(Math.random() * 1e9), username: uniq("Tg"), first_name: "Sara" });
+
+  test("start the bot, ask for a code, sign in with it", async () => {
+    const tg = tgUser();
+    expect((await write(tg)).status).toBe(200);
+    const a = await person();
+    expect((await a.post("/api/auth/telegram/code", { username: "@" + tg.username })).status).toBe(200);
+    const code = await codeFor(tg.id);
+    expect(code).toMatch(/^\d{6}$/);
+    expect((await a.post("/api/auth/telegram/verify", { username: tg.username, code: "000000" === code ? "111111" : "000000" })).body.error).toBe("code_wrong");
+    const ok = await a.post("/api/auth/telegram/verify", { username: tg.username, code });
+    expect(ok.body).toMatchObject({ ok: true, fresh: true });
+    expect((await a.get("/api/me")).body.user).toMatchObject({ username: tg.username.toLowerCase(), display: "Sara" });
+    expect((await a.post("/api/auth/telegram/verify", { username: tg.username, code })).body.error).toBe("code_expired");   // used up
+  });
+
+  test("a code goes to the account already linked to that Telegram", async () => {
+    const tg = tgUser();
+    const p = await signedUp();
+    const auto = await person();
+    await auto.post("/api/auth/telegram", { initData: signedInitData(BOT_TOKEN, tg) });               // makes an account and the link…
+    await auto.post("/api/me/telegram/switch", { initData: signedInitData(BOT_TOKEN, tg), username: p.username, password: p.password });   // …moved to p
+    await write(tg);
+    const a = await person();
+    await a.post("/api/auth/telegram/code", { username: tg.username });
+    await a.post("/api/auth/telegram/verify", { username: tg.username, code: await codeFor(tg.id) });
+    expect((await a.get("/api/me")).body.user.id).toBe(p.user.id);
+  });
+
+  test("no code before starting the bot, none twice a minute, none for a blocked bot, and a forged webhook is refused", async () => {
+    const a = await person();
+    expect((await a.post("/api/auth/telegram/code", { username: uniq("nobody") })).body.error).toBe("telegram_not_started");
+    const tg = tgUser();
+    expect((await write(tg, "/start", "wrong")).status).toBe(403);
+    await write(tg);
+    expect((await a.post("/api/auth/telegram/code", { username: tg.username })).status).toBe(200);
+    expect((await a.post("/api/auth/telegram/code", { username: tg.username })).body.error).toBe("code_wait");
+    const blocked = { ...tgUser(), id: 666 };
+    await write(blocked);
+    expect((await a.post("/api/auth/telegram/code", { username: blocked.username })).body.error).toBe("telegram_send_failed");
+  });
+
+  test("five wrong codes and the code stops working", async () => {
+    const tg = tgUser();
+    await write(tg);
+    const a = await person();
+    await a.post("/api/auth/telegram/code", { username: tg.username });
+    const code = await codeFor(tg.id), wrong = code === "123456" ? "654321" : "123456";
+    for (let i = 0; i < 5; i++) await a.post("/api/auth/telegram/verify", { username: tg.username, code: wrong });
+    expect((await a.post("/api/auth/telegram/verify", { username: tg.username, code })).body.error).toBe("too_many_attempts");
   });
 });
