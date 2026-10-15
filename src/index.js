@@ -1,10 +1,11 @@
 // The workspace server. Pages are built into dist/ and served by Cloudflare; this code answers /api/*.
 import { HttpError, json } from "./lib/http.js";
 import { accountRoutes } from "./accounts/routes.js";
+import { clusterRoutes } from "./clusters/routes.js";
 import { notificationRoutes } from "./notifications/routes.js";
 import { workspaceRoutes } from "./workspaces/routes.js";
 
-const routers = [accountRoutes, workspaceRoutes, notificationRoutes];
+const routers = [accountRoutes, workspaceRoutes, clusterRoutes, notificationRoutes];
 
 // Every change must come from our own pages: a form on another site cannot add this header.
 const OWN_PAGE_HEADER = "x-ws";
