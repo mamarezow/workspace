@@ -3,8 +3,8 @@ import { api } from "../api.js";
 import { h } from "../dom.js";
 import { errorText, t } from "../i18n.js";
 
-/** @param {{ onSignedIn: () => void }} opts */
-export function authPage({ onSignedIn }) {
+/** @param {{ onSignedIn: () => void, note?: string }} opts */
+export function authPage({ onSignedIn, note = "" }) {
   let mode = /** @type {"login" | "signup"} */ ("login");
   const root = h("div", { class: "center" });
 
@@ -32,6 +32,7 @@ export function authPage({ onSignedIn }) {
       },
     },
       h("h1", {}, t("appName")),
+      note && h("p", { class: "muted" }, note),
       h("label", {}, t("username"), username),
       mode === "signup" && h("label", {}, t("display"), display),
       h("label", {}, t("password"), password),

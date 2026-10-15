@@ -53,3 +53,34 @@ input[dir=ltr]{text-align:left}
 .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
 .avatar{width:40px;height:40px;border-radius:50%;background:var(--accent);color:var(--on-accent);display:grid;place-items:center;font-weight:700}
 .empty{text-align:center;padding:32px 16px}
+
+h3{font-size:14px;margin:4px 0 0;color:var(--muted);font-weight:600}
+.small{font-size:12px}
+.grow{flex:1;min-width:0}
+.nowrap{flex-wrap:nowrap}
+.nowrap input{flex:1;min-width:0}
+.icon-input{flex:0 0 56px!important;text-align:center}
+a{color:inherit}
+.list{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.item{display:flex;gap:12px;align-items:center;padding:10px 12px;border-radius:12px;background:var(--sunk);flex-wrap:wrap}
+.item.link{text-decoration:none}
+.item.link:hover{outline:1px solid var(--line)}
+.ws-icon{width:36px;height:36px;border-radius:10px;background:var(--surface);display:grid;place-items:center;font-size:18px}
+.badge{font-size:12px;padding:2px 10px;border-radius:999px;background:var(--surface);color:var(--muted);white-space:nowrap}
+.badge.quiet{opacity:.7;font-style:italic}
+.btn.small{padding:6px 10px;font-size:13px}
+.btn.danger{color:var(--bad)}
+a.btn{text-decoration:none;display:inline-block}
+.ws-title{font-size:20px;margin:0}
+.tabs{display:flex;gap:4px;background:var(--sunk);padding:4px;border-radius:12px;overflow-x:auto}
+.tab{flex:1;text-align:center;padding:8px 12px;border-radius:9px;text-decoration:none;color:var(--muted);white-space:nowrap;font-weight:600}
+.tab[aria-current=page]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;list-style:none;margin:4px 0 0;padding:0}
+.chip{font-size:12px;padding:2px 10px;border-radius:999px;color:#fff}
+.c0{background:#4f63a8}.c1{background:#7d6197}.c2{background:#4f8466}.c3{background:#b8714f}
+.c4{background:#b08a3a}.c5{background:#4a8584}.c6{background:#a85a6c}.c7{background:#6b7480}
+.check{display:flex;align-items:center;gap:4px;color:var(--ink)}
+.check input{width:auto}
+.picker summary{cursor:pointer;color:var(--muted);font-size:13px;margin-top:4px}
+.picker[open]{display:grid;gap:8px}
+.member .avatar{width:36px;height:36px}

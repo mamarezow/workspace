@@ -1,4 +1,5 @@
 // Answers, errors and request bodies, shared by every part of the server.
+import { randomHex } from "./crypto.js";
 
 /** An error that becomes an answer: `throw new HttpError("not_found", 404)`. */
 export class HttpError extends Error {
@@ -31,3 +32,11 @@ export async function readBody(req) {
 
 /** Text people type, trimmed and kept to a sensible length. @param {unknown} v @param {number} [max] */
 export const cleanText = (v, max = 200) => String(v ?? "").trim().slice(0, max);
+
+/** A short random id for rows people create, e.g. newId("w") → "w3f9a…". @param {string} prefix */
+export const newId = (prefix) => prefix + randomHex(8);
+
+/** Parses stored JSON, falling back when it is missing or broken. @template T @param {string | null | undefined} s @param {T} fallback @returns {T} */
+export function parseJson(s, fallback) {
+  try { return s == null ? fallback : JSON.parse(s); } catch { return fallback; }
+}
