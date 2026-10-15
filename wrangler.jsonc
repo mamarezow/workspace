@@ -1,0 +1,18 @@
+{
+  // Cloudflare settings. The worker serves the built pages from dist/ and the API under /api/.
+  "name": "workspace",
+  "main": "src/index.js",
+  "compatibility_date": "2025-09-01",
+  "assets": { "directory": "./dist", "not_found_handling": "single-page-application", "run_worker_first": ["/api/*"] },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "workspace",
+      "database_id": "e5af9da3-8cab-4bc5-97bf-6b51eb949b4a",
+      "migrations_dir": "migrations"
+    }
+  ],
+  // TELEGRAM_BOT_TOKEN is a secret: add it under the worker's Settings → Variables and Secrets
+  "vars": { "BOT_USERNAME": "" },
+  "observability": { "enabled": true }
+}
