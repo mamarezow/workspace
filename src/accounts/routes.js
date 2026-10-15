@@ -3,6 +3,7 @@ import { HttpError, json, readBody } from "../lib/http.js";
 import { Router } from "../lib/router.js";
 import * as store from "./store.js";
 import { telegramSignIn, verifyInitData } from "./telegram.js";
+import { checkCode, sendCode, setUpWebhook, webhook } from "./telegram-bot.js";
 
 const COOKIE = "sid";
 
@@ -43,6 +44,18 @@ export const accountRoutes = new Router()
     const u = await store.checkLogin(ctx.env, b.username, b.password);
     return signedIn(ctx, u.id);
   })
+  .on("GET /api/auth/telegram", async (ctx) => json({ bot: ctx.env.BOT_USERNAME || null }))   // for the sign-in page's Telegram button
+  .on("POST /api/auth/telegram/code", async (ctx) => {
+    await sendCode(ctx.env, (await readBody(ctx.req)).username);
+    return json({ ok: true });
+  })
+  .on("POST /api/auth/telegram/verify", async (ctx) => {
+    const b = await readBody(ctx.req);
+    const { userId, fresh } = await telegramSignIn(ctx.env, await checkCode(ctx.env, b.username, b.code));
+    return signedIn(ctx, userId, { ok: true, fresh });
+  })
+  .on("POST /api/telegram/webhook", webhook)
+  .on("GET /api/telegram/setup", setUpWebhook)
   .on("POST /api/auth/telegram", async (ctx) => {
     const b = await readBody(ctx.req);
     const { user: tg, startParam } = await verifyInitData(b.initData, ctx.env.TELEGRAM_BOT_TOKEN);

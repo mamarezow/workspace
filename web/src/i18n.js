@@ -1,9 +1,8 @@
 // Every word the pages show, in Persian and English.
 const words = {
   fa: {
-    signIn: "ورود", signUp: "ساخت حساب", signOut: "خروج",
-    username: "نام کاربری", password: "رمز", display: "نام نمایشی", email: "ایمیل (اختیاری)", about: "درباره من",
-    haveAccount: "حساب دارم", noAccount: "حساب ندارم",
+    signOut: "خروج",
+    display: "نام نمایشی", email: "ایمیل (اختیاری)", about: "درباره من",
     profile: "پروفایل", save: "ذخیره", saved: "ذخیره شد",
     lang: "زبان", cal: "تقویم", shamsi: "شمسی", gregorian: "میلادی", weekStart: "شروع هفته",
     sat: "شنبه", sun: "یکشنبه", mon: "دوشنبه",
@@ -22,13 +21,17 @@ const words = {
     settings: "تنظیمات فضای کار", rename: "تغییر اسم", deleteWs: "حذف فضای کار", leave: "خروج از فضای کار",
     confirmDelete: "فضای کار و همه چیزش برای همیشه پاک شود؟", confirmLeave: "از این فضای کار خارج شوی؟", confirmRemove: "از فضای کار حذف شود؟",
     joinTitle: "دعوت به فضای کار", join: "ورود به فضای کار", alreadyIn: "عضو این فضای کار هستی.", open: "باز کردن",
-    signInToJoin: "برای پیوستن، اول وارد شو یا حساب بساز.",
     errors: {
       username_invalid: "نام کاربری باید ۳ تا ۲۰ حرف انگلیسی، عدد یا _ باشد.",
       username_taken: "این نام کاربری گرفته شده.",
       password_short: "رمز باید دست‌کم ۶ حرف باشد.",
       email_invalid: "ایمیل درست نیست.",
       wrong_login: "نام کاربری یا رمز درست نیست.",
+      telegram_username_empty: "یوزرنیم تلگرام را بنویس.",
+      telegram_not_started: "اول ربات را در تلگرام استارت کن.",
+      telegram_send_failed: "ربات نتوانست پیام بفرستد. ربات را دوباره استارت کن.",
+      telegram_not_set_up: "ورود با تلگرام هنوز راه نیفتاده.",
+      code_wait: "یک دقیقه صبر کن، بعد کد تازه بگیر.", code_expired: "کد منقضی شده. کد تازه بگیر.", code_wrong: "کد درست نیست.",
       too_many_attempts: "تلاش‌ها زیاد بود. چند دقیقه دیگر دوباره امتحان کن.",
       name_empty: "اسم نمی‌تواند خالی باشد.",
       no_such_user: "کسی با این نام کاربری پیدا نشد.",
@@ -42,9 +45,8 @@ const words = {
     },
   },
   en: {
-    signIn: "Sign in", signUp: "Create account", signOut: "Sign out",
-    username: "Username", password: "Password", display: "Display name", email: "Email (optional)", about: "About me",
-    haveAccount: "I have an account", noAccount: "I don't have an account",
+    signOut: "Sign out",
+    display: "Display name", email: "Email (optional)", about: "About me",
     profile: "Profile", save: "Save", saved: "Saved",
     lang: "Language", cal: "Calendar", shamsi: "Solar Hijri", gregorian: "Gregorian", weekStart: "Week starts on",
     sat: "Saturday", sun: "Sunday", mon: "Monday",
@@ -63,13 +65,17 @@ const words = {
     settings: "Workspace settings", rename: "Rename", deleteWs: "Delete workspace", leave: "Leave workspace",
     confirmDelete: "Delete this workspace and everything in it for good?", confirmLeave: "Leave this workspace?", confirmRemove: "Remove from the workspace?",
     joinTitle: "Workspace invite", join: "Join workspace", alreadyIn: "You're already a member.", open: "Open",
-    signInToJoin: "Sign in or create an account to join.",
     errors: {
       username_invalid: "Usernames are 3–20 letters, digits or _.",
       username_taken: "That username is taken.",
       password_short: "Passwords need at least 6 characters.",
       email_invalid: "That email doesn't look right.",
       wrong_login: "Wrong username or password.",
+      telegram_username_empty: "Type your Telegram username.",
+      telegram_not_started: "Start the bot in Telegram first.",
+      telegram_send_failed: "The bot couldn't message you. Start it again.",
+      telegram_not_set_up: "Telegram login isn't set up yet.",
+      code_wait: "Wait a minute before asking for a new code.", code_expired: "The code has expired. Ask for a new one.", code_wrong: "Wrong code.",
       too_many_attempts: "Too many tries. Try again in a few minutes.",
       name_empty: "The name can't be empty.",
       no_such_user: "Nobody has that username.",
@@ -101,3 +107,6 @@ export const tn = (key, n) => words[lang][key](n);
 
 /** The message for an error code from the server. @param {string} code */
 export const errorText = (code) => words[lang].errors[code] || words[lang].errors.default;
+
+/** The same in English, for the sign-in page. @param {string} code */
+export const errorTextEn = (code) => words.en.errors[code] || words.en.errors.default;

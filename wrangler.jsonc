@@ -13,6 +13,6 @@
     }
   ],
   // TELEGRAM_BOT_TOKEN is a secret: add it under the worker's Settings → Variables and Secrets
-  "vars": { "BOT_USERNAME": "" },
+  "vars": { "BOT_USERNAME": "inbovoBot" },
   "observability": { "enabled": true }
 }
