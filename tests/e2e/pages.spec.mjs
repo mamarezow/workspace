@@ -11,7 +11,7 @@ test("sign up from the page, see the profile, save it, sign out", async ({ page 
   await page.getByLabel("رمز").fill("pass1234");
   await page.getByRole("button", { name: "ساخت حساب" }).click();
 
-  await expect(page.getByRole("heading", { name: "ورک‌اسپیس‌های من" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "فضاهای کار من" })).toBeVisible();
   await expect(page.getByText("@" + username)).toBeVisible();
   await page.getByLabel("درباره من").fill("برنامه‌نویس");
   await page.getByRole("button", { name: "ذخیره" }).click();

@@ -11,7 +11,7 @@ test("make a workspace, invite someone, they accept and get a team role", async 
   const a = await signedUp(), b = await signedUp();
   const pa = await pageAs(browser, a);
   await pa.goto("/");
-  await pa.getByPlaceholder("اسم ورک‌اسپیس").fill("تیم نشر");
+  await pa.getByPlaceholder("اسم فضای کار").fill("تیم نشر");
   await pa.getByRole("button", { name: "ساختن" }).click();
   await expect(pa.getByRole("heading", { name: "تیم نشر" })).toBeVisible();
   await expect(pa).toHaveURL(/\/w\/w[a-f0-9]+$/);
@@ -47,7 +47,7 @@ test("join with the lasting link from the page", async ({ browser }) => {
   const pb = await pageAs(browser, b);
   await pb.goto(`/join/${token}`);
   await expect(pb.getByRole("heading", { name: "کارگاه" })).toBeVisible();
-  await pb.getByRole("button", { name: "ورود به ورک‌اسپیس" }).click();
+  await pb.getByRole("button", { name: "ورود به فضای کار" }).click();
   await expect(pb).toHaveURL(new RegExp(`/w/${id}$`));
   await expect(pb.getByRole("link", { name: "خوشه‌ها" })).toBeVisible();
 });
