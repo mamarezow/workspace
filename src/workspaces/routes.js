@@ -14,7 +14,8 @@ export const workspaceRoutes = new Router()
   })
   .on("GET /api/ws/:id", async (ctx, p) => {
     const u = await requireUser(ctx), me = await need(ctx.env, p.id, u.id);
-    return json({ ...(await ws.getWorkspace(ctx.env, p.id)), me: { id: u.id, level: me.level } });
+    const [w, clusters] = await Promise.all([ws.getWorkspace(ctx.env, p.id), clustersMark(ctx.env, p.id, u.id)]);
+    return json({ ...w, clusters, me: { id: u.id, level: me.level } });
   })
   // open pages ask this now and then (see web/src/poll.js) and reload what moved: the workspace, or the person's clusters
   .on("GET /api/ws/:id/ver", async (ctx, p) => {

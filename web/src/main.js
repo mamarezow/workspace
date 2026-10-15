@@ -72,7 +72,7 @@ async function show() {
 async function page() {
   const route = currentRoute();
   if (!user) return authPage({ onSignedIn: show, note: route.name === "join" ? t("signInToJoin") : "" });
-  if (route.name === "workspace") return workspacePage({ id: route.id, tab: route.tab, user, onCleanup: (fn) => cleanups.push(fn) });
+  if (route.name === "workspace") return workspacePage({ id: route.id, tab: route.tab, sub: route.sub, user, onCleanup: (fn) => cleanups.push(fn) });
   if (route.name === "join") return joinPage({ code: route.code });
   return homePage({ user, onSignedOut: show, onChanged: show });
 }
