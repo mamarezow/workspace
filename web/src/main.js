@@ -2,7 +2,7 @@
 // then show the page for the current address.
 import { api } from "./api.js";
 import { h } from "./dom.js";
-import { setLang, t } from "./i18n.js";
+import { errorText, setLang, t } from "./i18n.js";
 import { currentRoute, listen } from "./router.js";
 import { errorLine } from "./ui.js";
 import { authPage } from "./pages/auth.js";
@@ -41,12 +41,13 @@ async function telegramSignIn() {
   try {
     await api("POST", "/api/auth/telegram", { initData: tg.initData });
     return true;
-  } catch {
+  } catch (e) {
+    if (e.message === "telegram_not_member") telegramNote = errorText(e.message);
     return false;
   }
 }
 
-let user = null, triedTelegram = false;
+let user = null, triedTelegram = false, telegramNote = "";
 let cleanups = [];
 
 async function show() {
@@ -71,7 +72,7 @@ async function show() {
 
 async function page() {
   const route = currentRoute();
-  if (!user) return authPage({ onSignedIn: show, note: route.name === "join" ? t("signInToJoin") : "" });
+  if (!user) return authPage({ onSignedIn: show, note: telegramNote || (route.name === "join" ? t("signInToJoin") : "") });
   if (route.name === "workspace") return workspacePage({ id: route.id, tab: route.tab, user, onCleanup: (fn) => cleanups.push(fn) });
   if (route.name === "join") return joinPage({ code: route.code });
   return homePage({ user, onSignedOut: show, onChanged: show });
