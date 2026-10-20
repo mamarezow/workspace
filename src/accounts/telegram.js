@@ -6,6 +6,9 @@ import { attachTelegram, createUser, findByUsername, telegramLink, validUsername
 
 const MAX_AGE_S = 24 * 3600;   // launch data older than a day is refused
 
+/** New accounts are made only when OPEN_SIGNUP is "1"; otherwise just the accounts already there sign in. */
+export const signupOpen = (env) => env.OPEN_SIGNUP === "1";
+
 /**
  * Telegram's rule: secret = HMAC("WebAppData", bot token); hash = HMAC(secret, the sorted "key=value" lines).
  * @param {string} initData @param {string | undefined} botToken @param {number} [nowS]
@@ -44,6 +47,7 @@ async function freeUsername(env, tgUsername) {
 export async function telegramSignIn(env, tg) {
   const link = await telegramLink(env, tg.id);
   if (link) return { userId: link.userId, fresh: false };
+  if (!signupOpen(env)) throw new HttpError("telegram_not_member", 403);   // only Telegram ids already linked to an account
   const display = [tg.first_name, tg.last_name].filter(Boolean).join(" ");
   let user = null;
   for (let i = 0; i < 3 && !user; i++) {

@@ -6,7 +6,9 @@ import { errorText, t } from "../i18n.js";
 /** @param {{ onSignedIn: () => void, note?: string }} opts */
 export function authPage({ onSignedIn, note = "" }) {
   let mode = /** @type {"login" | "signup"} */ ("login");
+  let signup = false;   // shown only when the server lets new accounts in
   const root = h("div", { class: "center" });
+  api("GET", "/api/auth/options").then((o) => { if (o.signup) { signup = true; render(); } }, () => {});
 
   function render() {
     const username = h("input", { name: "username", dir: "ltr", autocomplete: "username", required: true, autocapitalize: "none" });
@@ -38,7 +40,7 @@ export function authPage({ onSignedIn, note = "" }) {
       h("label", {}, t("password"), password),
       error,
       submit,
-      h("button", { class: "btn quiet", type: "button", onclick: () => { mode = mode === "login" ? "signup" : "login"; render(); } },
+      signup && h("button", { class: "btn quiet", type: "button", onclick: () => { mode = mode === "login" ? "signup" : "login"; render(); } },
         mode === "login" ? t("noAccount") : t("haveAccount")),
     );
     root.replaceChildren(form);

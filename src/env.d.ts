@@ -4,4 +4,5 @@ interface Env {
   ASSETS: Fetcher;
   BOT_USERNAME?: string;
   TELEGRAM_BOT_TOKEN?: string;
+  OPEN_SIGNUP?: string;   // "1" = anyone may make an account; otherwise only the accounts already there
 }
