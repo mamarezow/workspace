@@ -2,7 +2,7 @@
 // then show the page for the current address.
 import { api } from "./api.js";
 import { h } from "./dom.js";
-import { errorText, setLang, t } from "./i18n.js";
+import { setLang, t } from "./i18n.js";
 import { currentRoute, listen } from "./router.js";
 import { errorLine } from "./ui.js";
 import { authPage } from "./pages/auth.js";
@@ -42,7 +42,7 @@ async function telegramSignIn() {
     await api("POST", "/api/auth/telegram", { initData: tg.initData });
     return true;
   } catch (e) {
-    if (e.message === "telegram_not_member") telegramNote = errorText(e.message);
+    if (e.message === "telegram_not_member") telegramNote = e.message;   // the sign-in page says why
     return false;
   }
 }
@@ -72,7 +72,8 @@ async function show() {
 
 async function page() {
   const route = currentRoute();
-  if (!user) return authPage({ onSignedIn: show, note: telegramNote || (route.name === "join" ? t("signInToJoin") : "") });
+  document.title = !user ? "workspace" : route.name === "join" ? t("joinTitle") : t("myWorkspaces"); // a workspace's page puts its name here
+  if (!user) return authPage({ onSignedIn: show, joining: route.name === "join", notice: telegramNote });
   if (route.name === "workspace") return workspacePage({ id: route.id, tab: route.tab, user, onCleanup: (fn) => cleanups.push(fn) });
   if (route.name === "join") return joinPage({ code: route.code });
   return homePage({ user, onSignedOut: show, onChanged: show });
