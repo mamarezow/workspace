@@ -4,6 +4,7 @@ import { Router } from "../lib/router.js";
 import { requireUser } from "../accounts/routes.js";
 import { need } from "./access.js";
 import * as ws from "./store.js";
+import { adoptOrphans, clustersMark } from "../clusters/store.js";
 
 export const workspaceRoutes = new Router()
   .on("GET /api/ws", async (ctx) => json({ workspaces: await ws.listWorkspaces(ctx.env, (await requireUser(ctx)).id) }))
@@ -13,12 +14,15 @@ export const workspaceRoutes = new Router()
   })
   .on("GET /api/ws/:id", async (ctx, p) => {
     const u = await requireUser(ctx), me = await need(ctx.env, p.id, u.id);
-    return json({ ...(await ws.getWorkspace(ctx.env, p.id)), me: { id: u.id, level: me.level } });
+    const [w, clusters] = await Promise.all([ws.getWorkspace(ctx.env, p.id), clustersMark(ctx.env, p.id, u.id)]);
+    return json({ ...w, clusters, me: { id: u.id, level: me.level } });
   })
-  // open pages ask this every few seconds and reload when it moves
+  // open pages ask this now and then (see web/src/poll.js) and reload what moved: the workspace, or the person's clusters
   .on("GET /api/ws/:id/ver", async (ctx, p) => {
-    await need(ctx.env, p.id, (await requireUser(ctx)).id);
-    return json({ ver: await ws.workspaceVersion(ctx.env, p.id) });
+    const u = await requireUser(ctx);
+    await need(ctx.env, p.id, u.id);
+    const [ver, clusters] = await Promise.all([ws.workspaceVersion(ctx.env, p.id), clustersMark(ctx.env, p.id, u.id)]);
+    return json({ ver, clusters });
   })
   .on("PATCH /api/ws/:id", async (ctx, p) => {
     await need(ctx.env, p.id, (await requireUser(ctx)).id, "owner");
@@ -33,6 +37,7 @@ export const workspaceRoutes = new Router()
   .on("POST /api/ws/:id/leave", async (ctx, p) => {
     const u = await requireUser(ctx), me = await need(ctx.env, p.id, u.id);
     await ws.leave(ctx.env, p.id, u.id, me.level);
+    await adoptOrphans(ctx.env, p.id);
     return json({ ok: true });
   })
 
@@ -61,6 +66,7 @@ export const workspaceRoutes = new Router()
     const u = await requireUser(ctx), me = await need(ctx.env, p.id, u.id, "admin");
     if (p.uid === u.id) throw new HttpError("use_leave");
     await ws.removeMember(ctx.env, p.id, me.level, p.uid);
+    await adoptOrphans(ctx.env, p.id);
     return json({ ok: true });
   })
   .on("PUT /api/ws/:id/members/:uid/roles", async (ctx, p) => {

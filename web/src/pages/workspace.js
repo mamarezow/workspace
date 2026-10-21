@@ -6,19 +6,24 @@ import { t } from "../i18n.js";
 import { go } from "../router.js";
 import { act, avatar, copyText, errorLine, nameOf } from "../ui.js";
 import { poller } from "../poll.js";
+import { clustersTab } from "../clusters/tab.js";
 
 const TABS = /** @type {const} */ ([["team", "tabTeam"], ["clusters", "tabClusters"], ["docs", "tabDocs"]]);
 
 /**
- * @param {{ id: string, tab: string, user: any, onCleanup: (fn: () => void) => void }} opts
+ * @param {{ id: string, tab: string, sub?: string, user: any, onCleanup: (fn: () => void) => void }} opts
  */
-export async function workspacePage({ id, tab, user, onCleanup }) {
-  const root = h("div", { class: "page stack" });
+export async function workspacePage({ id, tab, sub, user, onCleanup }) {
+  const root = h("div", { class: "page stack" + (tab === "clusters" && sub ? " wide" : "") });
   let data = await api("GET", `/api/ws/${id}`);
+  let clusterMark = data.clusters;
+  // the clusters tab keeps itself up to date (a redraw of the page must not lose an open cluster)
+  const clusters = tab === "clusters" ? await clustersTab({ wsId: id, clusterId: sub, workspace: data, user }) : null;
 
-  const render = () => root.replaceChildren(header(data), tabs(id, tab), body(data, tab, refresh));
+  const render = () => root.replaceChildren(header(data), tabs(id, tab), clusters ? clusters.el : body(data, tab, refresh));
   async function refresh() {
     data = await api("GET", `/api/ws/${id}`);
+    clusters?.setWorkspace(data);
     render();
     poll?.poke();
   }
@@ -26,10 +31,14 @@ export async function workspacePage({ id, tab, user, onCleanup }) {
   const poll = poller(async () => {
     if (root.contains(document.activeElement) && document.activeElement.matches("input, textarea, select")) return false;   // don't redraw under someone typing
     try {
-      const { ver } = await api("GET", `/api/ws/${id}/ver`);
-      if (ver === data.workspace.ver) return false;
-      await refresh();
-      return true;
+      const r = await api("GET", `/api/ws/${id}/ver`);
+      let changed = false;
+      if (r.ver !== data.workspace.ver) { await refresh(); changed = true; }
+      if (clusters && r.clusters !== clusterMark && !clusters.busy()) {   // busy (dragging, typing, a sheet open): next time
+        clusterMark = r.clusters;
+        if (await clusters.reload()) changed = true;
+      }
+      return changed;
     } catch (e) {
       if (e.status === 404) go("/", { replace: true });                     // removed, or the workspace was deleted
       return false;
@@ -56,7 +65,7 @@ function tabs(id, current) {
 }
 
 function body(data, tab, refresh) {
-  if (tab !== "team") return h("section", { class: "card" }, h("p", { class: "muted empty" }, t("comingSoon")));
+  if (tab !== "team") return h("section", { class: "card" }, h("p", { class: "muted empty" }, t("comingSoon")));   // the docs tab, for now
   const admin = data.me.level !== "member";
   return h("div", { class: "stack" },
     membersCard(data, refresh),
