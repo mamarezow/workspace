@@ -108,7 +108,8 @@ test("tasks: add, edit values, move, tick steps, delete", async () => {
   expect(c.tasks[0]).toEqual(expect.objectContaining({ col: doing, pos: 0.5 }));
 
   // deleting a field clears it from tasks; deleting a column deletes its tasks; the last column stays
-  await a.del(`${url}/fields/${site}`);
+  expect((await a.del(`${url}/fields/${encodeURIComponent("x\") || 1 --")}`)).status).toBe(404);   // not a field: nothing runs
+  expect((await a.del(`${url}/fields/${site}`)).status).toBe(200);
   c = (await a.get(url)).body;
   expect(c.tasks[0].vals[site]).toBeUndefined();
   expect((await a.get(`/api/ws/${ws}/clusters`)).body.clusters[0].tasks).toBe(1);

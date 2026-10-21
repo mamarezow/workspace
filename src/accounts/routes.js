@@ -2,7 +2,8 @@
 import { HttpError, json, readBody } from "../lib/http.js";
 import { Router } from "../lib/router.js";
 import * as store from "./store.js";
-import { telegramSignIn, verifyInitData } from "./telegram.js";
+import { signupOpen, telegramSignIn, verifyInitData } from "./telegram.js";
+import { checkCode, sendCode, setUpWebhook, webhook } from "./telegram-bot.js";
 
 const COOKIE = "sid";
 
@@ -33,7 +34,9 @@ async function me(env, u) {
 }
 
 export const accountRoutes = new Router()
+  .on("GET /api/auth/options", async (ctx) => json({ signup: signupOpen(ctx.env) }))
   .on("POST /api/auth/signup", async (ctx) => {
+    if (!signupOpen(ctx.env)) throw new HttpError("signup_closed", 403);
     const b = await readBody(ctx.req);
     const u = await store.createUser(ctx.env, { username: b.username, password: String(b.password ?? ""), email: b.email, lang: b.lang, display: b.display });
     return signedIn(ctx, u.id);
@@ -43,6 +46,18 @@ export const accountRoutes = new Router()
     const u = await store.checkLogin(ctx.env, b.username, b.password);
     return signedIn(ctx, u.id);
   })
+  .on("GET /api/auth/telegram", async (ctx) => json({ bot: ctx.env.BOT_USERNAME || null }))   // for the sign-in page's Telegram button
+  .on("POST /api/auth/telegram/code", async (ctx) => {
+    await sendCode(ctx.env, (await readBody(ctx.req)).username);
+    return json({ ok: true });
+  })
+  .on("POST /api/auth/telegram/verify", async (ctx) => {
+    const b = await readBody(ctx.req);
+    const { userId, fresh } = await telegramSignIn(ctx.env, await checkCode(ctx.env, b.username, b.code));
+    return signedIn(ctx, userId, { ok: true, fresh });
+  })
+  .on("POST /api/telegram/webhook", webhook)
+  .on("GET /api/telegram/setup", async (ctx) => { await requireUser(ctx); return setUpWebhook(ctx); })   // only someone signed in
   .on("POST /api/auth/telegram", async (ctx) => {
     const b = await readBody(ctx.req);
     const { user: tg, startParam } = await verifyInitData(b.initData, ctx.env.TELEGRAM_BOT_TOKEN);

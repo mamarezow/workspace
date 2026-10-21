@@ -1,49 +1,88 @@
-// The sign-in and sign-up card.
+// The sign-in page. Always English, small letters and the thin code font, whatever the person's language,
+// like the inbovo.com landing page. The person types their Telegram username, the bot messages them a code,
+// they type it back. A small "password" link under it opens the username and password form.
 import { api } from "../api.js";
 import { h } from "../dom.js";
-import { errorText, t } from "../i18n.js";
+import { errorTextEn } from "../i18n.js";
 
-/** @param {{ onSignedIn: () => void, note?: string }} opts */
-export function authPage({ onSignedIn, note = "" }) {
-  let mode = /** @type {"login" | "signup"} */ ("login");
-  const root = h("div", { class: "center" });
+const words = {
+  tgUsername: "telegram username", sendCode: "send code", code: "code", login: "log-in", resend: "send a new code",
+  sent: (bot) => `code sent. check ${bot ? "@" + bot : "the bot"} in telegram.`, startBot: (bot) => `start @${bot} first`,
+  password: "password", username: "username", display: "display name", signup: "sign-up", back: "telegram",
+  toJoin: "log in to join.",
+};
 
-  function render() {
-    const username = h("input", { name: "username", dir: "ltr", autocomplete: "username", required: true, autocapitalize: "none" });
-    const password = h("input", { name: "password", type: "password", dir: "ltr", autocomplete: mode === "login" ? "current-password" : "new-password", required: true });
-    const display = h("input", { name: "display", autocomplete: "name" });
+/** @param {{ onSignedIn: () => void, joining?: boolean, notice?: string }} opts  notice: an error code to show first, e.g. from the mini app */
+export async function authPage({ onSignedIn, joining = false, notice = "" }) {
+  let bot = null, signup = false;   // the sign-up link shows only when the server lets new accounts in
+  await Promise.all([
+    api("GET", "/api/auth/telegram").then((o) => { bot = o.bot; }, () => {}),
+    api("GET", "/api/auth/options").then((o) => { signup = !!o.signup; }, () => {}),
+  ]);
+  const card = h("div", { class: "auth" });
+  const root = h("div", { class: "center night mono", dir: "ltr", lang: "en" }, h("div", { class: "brand" }, "workspace"), card);
+
+  /** A form whose submit button is disabled while it works and whose errors show under it. */
+  function form(fields, label, run) {
     const error = h("p", { class: "error", role: "alert" });
-    const submit = h("button", { class: "btn primary", type: "submit" }, mode === "login" ? t("signIn") : t("signUp"));
-
-    const form = h("form", {
-      class: "card auth stack",
+    const submit = h("button", { class: "btn primary wide", type: "submit" }, label);
+    const el = h("form", {
+      class: "card stack",
       onsubmit: async (e) => {
         e.preventDefault();
         submit.disabled = true;
         error.textContent = "";
-        try {
-          if (mode === "login") await api("POST", "/api/auth/login", { username: username.value, password: password.value });
-          else await api("POST", "/api/auth/signup", { username: username.value, password: password.value, display: display.value, lang: document.documentElement.lang });
-          onSignedIn();
-        } catch (err) {
-          error.textContent = errorText(err.message);
-          submit.disabled = false;
-        }
+        try { await run(); } catch (err) { error.textContent = errorTextEn(err.message); submit.disabled = false; }
       },
-    },
-      h("h1", {}, t("appName")),
-      note && h("p", { class: "muted" }, note),
-      h("label", {}, t("username"), username),
-      mode === "signup" && h("label", {}, t("display"), display),
-      h("label", {}, t("password"), password),
-      error,
-      submit,
-      h("button", { class: "btn quiet", type: "button", onclick: () => { mode = mode === "login" ? "signup" : "login"; render(); } },
-        mode === "login" ? t("noAccount") : t("haveAccount")),
-    );
-    root.replaceChildren(form);
+    }, joining && h("p", { class: "muted" }, words.toJoin), ...fields, error, submit);
+    return { el, error };
+  }
+
+  function telegram(tgName = "") {
+    const name = h("input", { name: "tg", placeholder: "@username", value: tgName, autocomplete: "username", autocapitalize: "none", spellcheck: "false", required: true });
+    const f = form([h("label", {}, words.tgUsername, name)], words.sendCode, async () => {
+      await api("POST", "/api/auth/telegram/code", { username: name.value });
+      code(name.value);
+    });
+    card.replaceChildren(f.el,
+      h("div", { class: "row center-row" },
+        bot && h("a", { class: "btn quiet", href: `https://t.me/${encodeURIComponent(bot)}`, target: "_blank", rel: "noopener" }, words.startBot(bot)),
+        h("button", { class: "btn quiet", type: "button", onclick: () => password("login") }, words.password)));
+    name.focus();
+  }
+
+  function code(tgName) {
+    const input = h("input", { name: "code", inputmode: "numeric", autocomplete: "one-time-code", maxlength: 6, placeholder: "······", required: true });
+    const f = form([h("p", { class: "muted", role: "status" }, words.sent(bot)), h("label", {}, words.code, input)], words.login, async () => {
+      await api("POST", "/api/auth/telegram/verify", { username: tgName, code: input.value });
+      onSignedIn();
+    });
+    card.replaceChildren(f.el,
+      h("div", { class: "row center-row" }, h("button", { class: "btn quiet", type: "button", onclick: () => telegram(tgName) }, words.resend)));
+    input.focus();
+  }
+
+  function password(mode) {
+    const username = h("input", { name: "username", autocomplete: "username", required: true, autocapitalize: "none", spellcheck: "false" });
+    const pass = h("input", { name: "password", type: "password", autocomplete: mode === "login" ? "current-password" : "new-password", required: true });
+    const display = h("input", { name: "display", autocomplete: "name" });
+    const f = form([
+      h("label", {}, words.username, username),
+      mode === "signup" && h("label", {}, words.display, display),
+      h("label", {}, words.password, pass),
+    ], mode === "login" ? words.login : words.signup, async () => {
+      if (mode === "login") await api("POST", "/api/auth/login", { username: username.value, password: pass.value });
+      else await api("POST", "/api/auth/signup", { username: username.value, password: pass.value, display: display.value, lang: "fa" });
+      onSignedIn();
+    });
+    card.replaceChildren(f.el,
+      h("div", { class: "row center-row" },
+        (signup || mode === "signup") && h("button", { class: "btn quiet", type: "button", onclick: () => password(mode === "login" ? "signup" : "login") }, mode === "login" ? words.signup : words.login),
+        h("button", { class: "btn quiet", type: "button", onclick: () => telegram() }, words.back)));
     username.focus();
   }
-  render();
+
+  telegram();
+  if (notice) card.querySelector(".error").textContent = errorTextEn(notice);
   return root;
 }

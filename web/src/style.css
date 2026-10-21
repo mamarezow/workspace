@@ -3,38 +3,72 @@
 @font-face{font-family:"Sahel";src:url(/fonts/sahel-400.woff2) format("woff2");font-weight:400;font-display:swap}
 @font-face{font-family:"Sahel";src:url(/fonts/sahel-600.woff2) format("woff2");font-weight:500 600;font-display:swap}
 @font-face{font-family:"Sahel";src:url(/fonts/sahel-700.woff2) format("woff2");font-weight:700;font-display:swap}
+@font-face{font-family:"JetBrains Mono";src:url(/fonts/jetbrains-mono-300.woff2) format("woff2");font-weight:300;font-display:swap}
+@font-face{font-family:"JetBrains Mono";src:url(/fonts/jetbrains-mono-400.woff2) format("woff2");font-weight:400 600;font-display:swap}
 
 :root{
-  --bg:#f5f3ee; --surface:#fdfcf9; --sunk:#eeebe3; --ink:#2b2620; --muted:#857c70; --line:#e4dfd4;
-  --accent:#f4c430; --on-accent:#3a332b; --bad:#a85a6c;
-  --radius:14px; --shadow:0 1px 2px rgba(30,26,20,.04),0 8px 24px rgba(30,26,20,.06);
+  --bg:#f3f5fb; --surface:#ffffff; --sunk:#edf0f8; --ink:#111733; --muted:#636d93; --line:#dde2ef;
+  --accent:#5fe6c0; --on-accent:#02130d; --ring:#1fae8a; --bad:#c2405c;
+  --glass:linear-gradient(180deg,rgba(31,174,138,.24),rgba(31,174,138,.12)); --glass-line:rgba(31,174,138,.5); --glass-ink:#0a3d31;
+  --sky:radial-gradient(120% 90% at 50% 110%,#e3e6fb 0%,#f3f5fb 55%);
+  --glow:0 0 0 1px rgba(31,174,138,.25),0 8px 24px rgba(31,174,138,.18);
+  --radius:18px; --shadow:0 1px 2px rgba(17,23,51,.04),0 10px 30px rgba(17,23,51,.06);
   --font:"Sahel",system-ui,-apple-system,"Segoe UI",sans-serif;
   color-scheme:light;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#141312; --surface:#1b1a18; --sunk:#232120; --ink:#e8e3da; --muted:#968f84; --line:#2e2b27;
-    --on-accent:#221c13; --bad:#c88e9c; --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 28px rgba(0,0,0,.3); color-scheme:dark;
+    --bg:#02030a; --surface:rgba(13,20,48,.78); --sunk:rgba(255,255,255,.05); --ink:#e8eeff; --muted:#8a96c4; --line:rgba(138,150,196,.18);
+    --accent:#7cf3d0; --ring:#7cf3d0; --bad:#ff8fa3;
+    --glass:linear-gradient(180deg,rgba(124,243,208,.30),rgba(124,243,208,.12)); --glass-line:rgba(124,243,208,.55); --glass-ink:#e9fff8;
+    --sky:radial-gradient(120% 90% at 50% 110%,#1a1446 0%,#07102a 45%,#02030a 100%);
+    --glow:0 0 0 1px rgba(124,243,208,.4),0 10px 40px rgba(124,243,208,.22);
+    --shadow:0 1px 0 rgba(255,255,255,.03) inset,0 12px 40px rgba(0,0,0,.35); color-scheme:dark;
   }
 }
-:root[data-theme="dark"]{
-  --bg:#141312; --surface:#1b1a18; --sunk:#232120; --ink:#e8e3da; --muted:#968f84; --line:#2e2b27;
-  --on-accent:#221c13; --bad:#c88e9c; --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 28px rgba(0,0,0,.3); color-scheme:dark;
+/* Dark theme, and the night-sky look of the sign-in and invite pages (taken from inbovo.com) in either theme. */
+:root[data-theme="dark"],.night{
+  --bg:#02030a; --surface:rgba(13,20,48,.78); --sunk:rgba(255,255,255,.05); --ink:#e8eeff; --muted:#8a96c4; --line:rgba(138,150,196,.18);
+  --accent:#7cf3d0; --ring:#7cf3d0; --bad:#ff8fa3;
+  --glass:linear-gradient(180deg,rgba(124,243,208,.30),rgba(124,243,208,.12)); --glass-line:rgba(124,243,208,.55); --glass-ink:#e9fff8;
+  --sky:radial-gradient(120% 90% at 50% 110%,#1a1446 0%,#07102a 45%,#02030a 100%);
+  --glow:0 0 0 1px rgba(124,243,208,.4),0 10px 40px rgba(124,243,208,.22);
+  --shadow:0 1px 0 rgba(255,255,255,.03) inset,0 12px 40px rgba(0,0,0,.35); color-scheme:dark;
 }
 
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{margin:0}
-body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+html{background:var(--bg)}
+body{background:var(--sky) no-repeat;min-height:100vh;color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
 button,input,select,textarea{font:inherit;color:inherit}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:8px}
+:focus-visible{outline:2px solid var(--ring);outline-offset:2px;border-radius:8px}
 
 .boot{min-height:100vh}
 .page{max-width:720px;margin:0 auto;padding:24px 16px 48px}
 .center{min-height:100vh;display:grid;place-items:center;padding:16px}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px}
-.auth{width:100%;max-width:380px}
-h1{font-size:22px;margin:0 0 4px}
+.night{background:var(--sky);color:var(--ink);position:relative;isolation:isolate;overflow:hidden}
+/* A still field of stars behind the card. */
+.night::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:.7;
+  background-image:radial-gradient(1px 1px at 12% 18%,#fff,transparent),radial-gradient(1px 1px at 78% 12%,#cfe3ff,transparent),
+  radial-gradient(1.5px 1.5px at 32% 72%,#fff,transparent),radial-gradient(1px 1px at 88% 64%,#fff,transparent),
+  radial-gradient(1px 1px at 55% 34%,#cfe3ff,transparent),radial-gradient(1.5px 1.5px at 8% 88%,#7cf3d0,transparent),
+  radial-gradient(1px 1px at 66% 90%,#fff,transparent),radial-gradient(1px 1px at 44% 8%,#fff,transparent);
+  background-size:420px 420px}
+.night::after{content:"";position:absolute;left:50%;bottom:-40vh;width:140vw;height:70vh;transform:translateX(-50%);z-index:-1;pointer-events:none;
+  background:radial-gradient(closest-side,rgba(124,243,208,.10),transparent)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+.auth{width:100%;max-width:360px}
+/* The sign-in page: English, small letters, thin code font, the name in small spaced letters at the top. */
+.mono{font-family:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;font-weight:300;text-transform:lowercase}
+.mono .card{padding:24px}
+.mono .btn,.mono label{font-weight:400;font-size:14px;letter-spacing:.02em}
+.mono input{font-family:inherit;text-transform:none;direction:ltr;text-align:left}
+.mono .error{text-transform:none}
+.btn.wide{display:block;width:100%;text-align:center;padding:14px 18px}
+.center-row{justify-content:center;margin-top:12px}
+.brand{position:absolute;top:28px;left:0;right:0;text-align:center;font-size:13px;letter-spacing:.5em;color:var(--ink);font-weight:400}
+h1{font-size:22px;margin:0 0 4px;font-weight:600}
 h2{font-size:17px;margin:0 0 12px}
 .muted{color:var(--muted)}
 .stack{display:grid;gap:12px}
@@ -42,13 +76,20 @@ h2{font-size:17px;margin:0 0 12px}
 .spread{justify-content:space-between}
 
 label{display:grid;gap:4px;font-size:13px;color:var(--muted)}
-input,select,textarea{background:var(--sunk);border:1px solid var(--line);border-radius:10px;padding:10px 12px;color:var(--ink);font-size:15px;width:100%}
+input,select,textarea{background:var(--sunk);border:1px solid var(--line);border-radius:12px;padding:10px 12px;color:var(--ink);font-size:15px;width:100%}
 input[dir=ltr]{text-align:left}
 
-.btn{border:0;border-radius:10px;padding:10px 16px;background:var(--sunk);cursor:pointer;font-weight:600}
-.btn.primary{background:var(--accent);color:var(--on-accent)}
-.btn.quiet{background:none;color:var(--muted);padding:6px 8px}
-.btn:disabled{opacity:.6;cursor:default}
+input:focus,select:focus,textarea:focus{outline:0;border-color:var(--ring)}
+input::placeholder{color:var(--muted);opacity:.7}
+
+.btn{border:1px solid var(--line);border-radius:12px;padding:10px 18px;background:var(--sunk);cursor:pointer;font-weight:600;transition:transform .2s ease,box-shadow .2s ease}
+/* Primary buttons are frosted glass tinted mint. */
+.btn.primary{background:var(--glass);color:var(--glass-ink);border-color:var(--glass-line);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22),var(--glow)}
+.btn.primary:hover:not(:disabled){transform:translateY(-1px)}
+.btn.quiet{background:none;border-color:transparent;color:var(--muted);padding:6px 10px}
+.btn.quiet:hover{color:var(--ink)}
+.btn:disabled{opacity:.6;cursor:default;transform:none}
 .error{color:var(--bad);font-size:13px;min-height:1.2em;margin:0}
 
 .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
@@ -65,21 +106,21 @@ a{color:inherit}
 .list{list-style:none;margin:0;padding:0;display:grid;gap:6px}
 .item{display:flex;gap:12px;align-items:center;padding:10px 12px;border-radius:12px;background:var(--sunk);flex-wrap:wrap}
 .item.link{text-decoration:none}
-.item.link:hover{outline:1px solid var(--line)}
-.ws-icon{width:36px;height:36px;border-radius:10px;background:var(--surface);display:grid;place-items:center;font-size:18px}
+.item.link:hover{outline:1px solid var(--ring)}
+.ws-icon{width:36px;height:36px;border-radius:12px;background:var(--surface);display:grid;place-items:center;font-size:18px}
 .badge{font-size:12px;padding:2px 10px;border-radius:999px;background:var(--surface);color:var(--muted);white-space:nowrap}
 .badge.quiet{opacity:.7;font-style:italic}
 .btn.small{padding:6px 10px;font-size:13px}
 .btn.danger{color:var(--bad)}
 a.btn{text-decoration:none;display:inline-block}
 .ws-title{font-size:20px;margin:0}
-.tabs{display:flex;gap:4px;background:var(--sunk);padding:4px;border-radius:12px;overflow-x:auto}
-.tab{flex:1;text-align:center;padding:8px 12px;border-radius:9px;text-decoration:none;color:var(--muted);white-space:nowrap;font-weight:600}
-.tab[aria-current=page]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+.tabs{display:flex;gap:4px;background:var(--sunk);border:1px solid var(--line);padding:4px;border-radius:14px;overflow-x:auto}
+.tab{flex:1;text-align:center;padding:8px 12px;border-radius:10px;text-decoration:none;color:var(--muted);white-space:nowrap;font-weight:600}
+.tab[aria-current=page]{background:var(--accent);color:var(--on-accent)}
 .chips{display:flex;flex-wrap:wrap;gap:6px;list-style:none;margin:4px 0 0;padding:0}
 .chip{font-size:12px;padding:2px 10px;border-radius:999px;color:#fff}
-.c0{background:#4f63a8}.c1{background:#7d6197}.c2{background:#4f8466}.c3{background:#b8714f}
-.c4{background:#b08a3a}.c5{background:#4a8584}.c6{background:#a85a6c}.c7{background:#6b7480}
+.c0{background:#4f63a8}.c1{background:#7d6197}.c2{background:#2f8f74}.c3{background:#3f7fc0}
+.c4{background:#6a5acd}.c5{background:#4a8584}.c6{background:#a85a6c}.c7{background:#6b7480}
 .check{display:flex;align-items:center;gap:4px;color:var(--ink)}
 .check input{width:auto}
 .picker summary{cursor:pointer;color:var(--muted);font-size:13px;margin-top:4px}

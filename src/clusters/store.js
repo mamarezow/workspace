@@ -255,9 +255,12 @@ export async function editField(env, id, fid, b) {
 
 /** Deleting a field also clears its values from every task. */
 export async function deleteField(env, id, fid) {
+  // only a field of this cluster, so the id below is one we made (letters and digits), never a JSON path from outside
+  const f = await env.DB.prepare("SELECT id FROM cluster_fields WHERE id = ? AND cluster_id = ?").bind(String(fid ?? ""), id).first();
+  if (!f) throw new HttpError("not_found", 404);
   await env.DB.batch([
-    env.DB.prepare("DELETE FROM cluster_fields WHERE id = ? AND cluster_id = ?").bind(fid, id),
-    env.DB.prepare("UPDATE cluster_tasks SET vals = json_remove(vals, '$.' || ?) WHERE cluster_id = ?").bind(fid, id),
+    env.DB.prepare("DELETE FROM cluster_fields WHERE id = ? AND cluster_id = ?").bind(f.id, id),
+    env.DB.prepare("UPDATE cluster_tasks SET vals = json_remove(vals, '$.\"' || ? || '\"') WHERE cluster_id = ?").bind(f.id, id),
     bump(env, id),
   ]);
 }
