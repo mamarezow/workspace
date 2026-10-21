@@ -171,4 +171,8 @@ test.describe("Telegram code", () => {
     for (let i = 0; i < 5; i++) await a.post("/api/auth/telegram/verify", { username: tg.username, code: wrong });
     expect((await a.post("/api/auth/telegram/verify", { username: tg.username, code })).body.error).toBe("too_many_attempts");
   });
+
+  test("pointing the bot's webhook needs someone signed in", async () => {
+    expect((await (await person()).get("/api/telegram/setup")).status).toBe(401);
+  });
 });

@@ -41,12 +41,13 @@ async function telegramSignIn() {
   try {
     await api("POST", "/api/auth/telegram", { initData: tg.initData });
     return true;
-  } catch {
+  } catch (e) {
+    if (e.message === "telegram_not_member") telegramNote = e.message;   // the sign-in page says why
     return false;
   }
 }
 
-let user = null, triedTelegram = false;
+let user = null, triedTelegram = false, telegramNote = "";
 let cleanups = [];
 
 async function show() {
@@ -72,7 +73,7 @@ async function show() {
 async function page() {
   const route = currentRoute();
   document.title = !user ? "workspace" : route.name === "join" ? t("joinTitle") : t("myWorkspaces"); // a workspace's page puts its name here
-  if (!user) return authPage({ onSignedIn: show, joining: route.name === "join" });
+  if (!user) return authPage({ onSignedIn: show, joining: route.name === "join", notice: telegramNote });
   if (route.name === "workspace") return workspacePage({ id: route.id, tab: route.tab, user, onCleanup: (fn) => cleanups.push(fn) });
   if (route.name === "join") return joinPage({ code: route.code });
   return homePage({ user, onSignedOut: show, onChanged: show });

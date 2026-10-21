@@ -12,7 +12,8 @@ CREATE INDEX telegram_chats_username ON telegram_chats(tg_username);
 CREATE TABLE login_codes (
   telegram_id  TEXT PRIMARY KEY,              -- one live code per Telegram account
   code_hash    TEXT NOT NULL,
-  tries        INTEGER NOT NULL DEFAULT 0,    -- wrong guesses so far
+  tries        INTEGER NOT NULL DEFAULT 0,    -- wrong guesses since tries_from, across new codes too
+  tries_from   INTEGER NOT NULL DEFAULT 0,    -- when the current window of wrong guesses began
   sent_at      INTEGER NOT NULL,
   expires_at   INTEGER NOT NULL
 );

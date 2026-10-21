@@ -12,10 +12,13 @@ const words = {
   toJoin: "log in to join.",
 };
 
-/** @param {{ onSignedIn: () => void, joining?: boolean }} opts */
-export async function authPage({ onSignedIn, joining = false }) {
-  let bot = null;
-  try { bot = (await api("GET", "/api/auth/telegram")).bot; } catch {}
+/** @param {{ onSignedIn: () => void, joining?: boolean, notice?: string }} opts  notice: an error code to show first, e.g. from the mini app */
+export async function authPage({ onSignedIn, joining = false, notice = "" }) {
+  let bot = null, signup = false;   // the sign-up link shows only when the server lets new accounts in
+  await Promise.all([
+    api("GET", "/api/auth/telegram").then((o) => { bot = o.bot; }, () => {}),
+    api("GET", "/api/auth/options").then((o) => { signup = !!o.signup; }, () => {}),
+  ]);
   const card = h("div", { class: "auth" });
   const root = h("div", { class: "center night mono", dir: "ltr", lang: "en" }, h("div", { class: "brand" }, "workspace"), card);
 
@@ -74,11 +77,12 @@ export async function authPage({ onSignedIn, joining = false }) {
     });
     card.replaceChildren(f.el,
       h("div", { class: "row center-row" },
-        h("button", { class: "btn quiet", type: "button", onclick: () => password(mode === "login" ? "signup" : "login") }, mode === "login" ? words.signup : words.login),
+        (signup || mode === "signup") && h("button", { class: "btn quiet", type: "button", onclick: () => password(mode === "login" ? "signup" : "login") }, mode === "login" ? words.signup : words.login),
         h("button", { class: "btn quiet", type: "button", onclick: () => telegram() }, words.back)));
     username.focus();
   }
 
   telegram();
+  if (notice) card.querySelector(".error").textContent = errorTextEn(notice);
   return root;
 }
